@@ -12,8 +12,10 @@ import {
   TableContainer,
   TablePagination,
   TableRow,
+  TextField,
 } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
+import debounce from "lodash.debounce";
 import React from "react";
 import useSWR from "swr";
 
@@ -65,9 +67,19 @@ async function fetcher(req: RequestInfo) {
   return (await fetch(req)).json();
 }
 
-function useFiles({ cursor, pageSize }: { cursor?: string; pageSize: number }) {
+function useFiles({
+  cursor,
+  pageSize,
+  suppliedId,
+}: {
+  cursor?: string;
+  pageSize: number;
+  suppliedId?: string;
+}) {
   return useSWR(
-    `/api/files?pageSize=${pageSize}${cursor ? `&cursor=${cursor}` : ""}`,
+    `/api/files?pageSize=${pageSize}${cursor ? `&cursor=${cursor}` : ""}${
+      suppliedId ? `&suppliedId=${suppliedId}` : ""
+    }`,
     fetcher
   );
 }
@@ -77,17 +89,25 @@ export function FilesTable(): JSX.Element {
   const rowHeight = 53;
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [curPage, setCurPage] = React.useState(0);
+  const [suppliedId, setSuppliedIdFilter] = React.useState<
+    string | undefined
+  >();
   const [showDialog, setShowDialog] = React.useState(false);
   const [privateCursor, setPrivateCursor] = React.useState<
     string | undefined
   >();
   const [cursor, setCursor] = React.useState<string | undefined>();
   const [showToast, setShowToast] = React.useState<boolean>(false);
-  const { data, error, mutate } = useFiles({ cursor, pageSize });
+  const { data, error, mutate } = useFiles({ cursor, pageSize, suppliedId });
 
   const page = data ? toFilePage(data) : undefined;
   const pageLength = page ? page.items.length : 0;
   const emptyRows = pageSize - pageLength;
+
+  const debouncedSetSuppliedIdFilter = React.useMemo(
+    () => debounce(setSuppliedIdFilter, 300),
+    []
+  );
 
   React.useEffect(() => {
     if (page == null) return;
@@ -145,10 +165,24 @@ export function FilesTable(): JSX.Element {
         />
         <Box
           sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
+            px: { sm: 2 },
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
+          <TextField
+            variant="standard"
+            size="small"
+            margin="normal"
+            id="suppliedIdFilter"
+            label="Supplied ID Filter"
+            type="text"
+            onChange={(e) => {
+              debouncedSetSuppliedIdFilter(e.target.value);
+            }}
+            sx={{ mt: 0 }}
+          />
           <Button
             key="upload"
             variant="contained"

@@ -27,8 +27,8 @@ export default function CreateFileDialog({
   onFileCreated,
 }: CreateFileDialogProps): JSX.Element {
   const [file, setFile] = React.useState<File | null | undefined>(null);
-  const [suppliedId, setSuppliedId] = React.useState<string | null>(null);
-  const [rootFileName, setRootFileName] = React.useState<string | null>(null);
+  const [suppliedId, setSuppliedId] = React.useState<string | undefined>();
+  const [rootFileName, setRootFileName] = React.useState<string | undefined>();
   const [submitDisabled, setSubmitDisabled] = React.useState<boolean>(true);
   const [progress, setProgress] = React.useState<boolean>(false);
 
@@ -61,9 +61,9 @@ export default function CreateFileDialog({
       });
 
       onFileCreated(fileRes.id);
-      setFile(null);
-      setSuppliedId(null);
-      setRootFileName(null);
+      setFile(undefined);
+      setSuppliedId(undefined);
+      setRootFileName(undefined);
       setProgress(false);
     }
   }

@@ -65,10 +65,13 @@ async function get(req: NextApiRequest): Promise<ErrorRes | GetFilesRes> {
     const c = await getClient();
     const ps = head(req.query.pageSize);
     const pc = head(req.query.cursor);
+    const sId = head(req.query.suppliedId);
+
     const r = await getPage(() =>
       c.files.getFiles({
         pageCursor: pc,
         pageSize: ps ? parseInt(ps, 10) : 10,
+        filterSuppliedId: sId
       })
     );
     return { cursor: r.cursor, data: r.page.data, status: 200 };
